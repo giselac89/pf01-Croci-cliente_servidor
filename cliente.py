@@ -3,7 +3,7 @@ import socket
 host = "localhost"
 port = 5000
 
-#conexion al servidor
+#----------conexion al servidor----------
 def conectar_servidor():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
@@ -19,5 +19,33 @@ def conectar_servidor():
     return s
 
  
+#----------funcion para enviar mensaje al servidor----------
+
+def enviar_mensaje(s):
+    while True:
+        mensaje = input("Ingrese un mensaje (o 'éxito' para terminar): ")
+        if mensaje.lower() == "éxito":
+            print("Cerrando conexión...")
+            s.close()
+            break
+        try:
+            s.send(mensaje.encode())
+            print("Mensaje enviado al servidor.")
+        except socket.error as e:
+            print(f"Error al enviar el mensaje: {e}")
+            break
+
+        respuesta = s.recv(1024).decode()
+        print(f"Respuesta del servidor: {respuesta}")
+
+
+def main():
+    s = conectar_servidor()
+    try:
+        enviar_mensaje(s)
+    except KeyboardInterrupt:
+        print("\nCerrando conexión...")
+        s.close()
+
 if __name__ == "__main__":
-    conectar_servidor()
+    main()

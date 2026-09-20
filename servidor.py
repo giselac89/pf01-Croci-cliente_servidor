@@ -28,12 +28,12 @@ def crear_socket():
 
 def inicializar_base_datos():
     try:
-        conn = sqlite3.connect(nombre_db)
+        conexion_db = sqlite3.connect(nombre_db)
     except sqlite3.OperationalError as e:
         print(f"ERROR - No se pudo acceder a la base de datos: {nombre_db}. Detalle técnico: {e}")
         raise SystemExit(1)
 
-    cursor = conn.cursor()
+    cursor = conexion_db.cursor()
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS mensajes (
@@ -43,34 +43,68 @@ def inicializar_base_datos():
             ip_cliente TEXT NOT NULL
         )
     """)
-    conn.commit()  # Confirma la creación de la tabla en el archivo .db
+    conexion_db.commit()  # Confirma la creación de la tabla en el archivo .db
 
     print(f"[OK] Base de datos '{nombre_db}' lista.")
-    return conn
+    return conexion_db
 
 #----------Función para guardar mensajes en la base de datos----------
-def guardar_mensaje(conn, contenido, fecha_envio, ip_cliente):
+def guardar_mensaje(conexion_db, contenido, fecha_envio, ip_cliente):
     try:
-        cursor = conn.cursor()
+        cursor = conexion_db.cursor()
         cursor.execute("""
             INSERT INTO mensajes (contenido, fecha_envio, ip_cliente)
             VALUES (?, ?, ?)
         """, (contenido, fecha_envio, ip_cliente))
-        conn.commit()  # Confirma la inserción del mensaje en la base de datos
+        conexion_db.commit()  # Confirma la inserción del mensaje en la base de datos
         return True
     except sqlite3.OperationalError as e:
         print(f"ERROR - No se pudo guardar el mensaje en la base de datos: {e}")
         return False
 
     
-#----------Prueba de las funciones antes de integrarlas----------
+#----------Atender la conexión con un cliente----------
+
+def atender_cliente(conexion, direccion, conexion_db):
+
+    ip_cliente = direccion[0]  # direccion es ip + puerto 
+    print(f"[INFO] Cliente conectado desde {ip_cliente}")
+
+    while True:
+        datos = conexion.recv(1024)
+        if not datos:
+            print("Cliente se desconectó.")
+            break
+
+        contenido = datos.decode()
+        print(f"Mensaje recibido: {contenido}")  # mensaje recibido
+
+        fecha_envio = datetime.now().isoformat()  # Timestamp actual
+        guardar_mensaje(conexion_db, contenido, fecha_envio, direccion[0])
+
+        respuesta = f"Mensaje recibido: {fecha_envio}"
+        conexion.send(respuesta.encode())
+
+    conexion.close()
+
+
+#----------Programa principal----------
+def main():
+    socket = crear_socket()
+    conexion_db = inicializar_base_datos()
+
+    try:
+        while True:
+            conexion, direccion = socket.accept()
+            atender_cliente(conexion, direccion, conexion_db)
+            print("Esperando conexión...")
+    except KeyboardInterrupt:
+        print("\nServidor detenido manualmente (Ctrl+C).")
+    finally:
+        socket.close()
+        conexion_db.close()
+        print("Servidor cerrado.")
 
 
 if __name__ == "__main__":
-    conn = inicializar_base_datos()
-
-    # Simulamos un mensaje como si hubiera llegado de un cliente real
-    exito = guardar_mensaje(conn, "Mensaje de prueba", datetime.now().isoformat(), "127.0.0.1")
-    print(f"¿Se guardó el mensaje? {exito}")
-
-    conn.close()
+    main()
