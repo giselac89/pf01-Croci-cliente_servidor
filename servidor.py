@@ -15,7 +15,7 @@ def crear_socket():
     try:
         s.bind((host, port))    
     except OSError as error:
-        print(f"ERROR - No se pudo iniciar el servidor: el puerto {port} ya está en uso.") #Manejo del error de "puerto ocupado"
+        print(f"[ERROR] - No se pudo iniciar el servidor: el puerto {port} ya está en uso.") #Manejo del error de "puerto ocupado"
         print(f"Detalle técnico: {error}")
         raise SystemExit(1)
     
@@ -30,7 +30,7 @@ def inicializar_base_datos():
     try:
         conexion_db = sqlite3.connect(nombre_db)
     except sqlite3.OperationalError as e:
-        print(f"ERROR - No se pudo acceder a la base de datos: {nombre_db}. Detalle técnico: {e}")
+        print(f"[ERROR] - No se pudo acceder a la base de datos: {nombre_db}. Detalle técnico: {e}")
         raise SystemExit(1)
 
     cursor = conexion_db.cursor()
@@ -59,7 +59,7 @@ def guardar_mensaje(conexion_db, contenido, fecha_envio, ip_cliente):
         conexion_db.commit()  # Confirma la inserción del mensaje en la base de datos
         return True
     except sqlite3.OperationalError as e:
-        print(f"ERROR - No se pudo guardar el mensaje en la base de datos: {e}")
+        print(f"[ERROR] - No se pudo guardar el mensaje en la base de datos: {e}")
         return False
 
     
@@ -77,12 +77,12 @@ def atender_cliente(conexion, direccion, conexion_db):
             break
 
         contenido = datos.decode()
-        print(f"Mensaje recibido: {contenido}")  # mensaje recibido
+        print(f"[INFO] Mensaje recibido: {contenido}")  # mensaje recibido
 
         fecha_envio = datetime.now().isoformat()  # Timestamp actual
         guardar_mensaje(conexion_db, contenido, fecha_envio, direccion[0])
 
-        respuesta = f"Mensaje recibido: {fecha_envio}"
+        respuesta = f"[INFO] Mensaje recibido: {fecha_envio}"
         conexion.send(respuesta.encode())
 
     conexion.close()

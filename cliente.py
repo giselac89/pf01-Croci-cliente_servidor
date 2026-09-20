@@ -12,7 +12,7 @@ def conectar_servidor():
         print(f"El servidor no está corriendo en {host}:{port}")
         raise SystemExit(1)
     except socket.error as e:
-        print(f"Error al conectar al servidor: {e}")
+        print(f"[ERROR] Error al conectar al servidor: {e}")
         raise SystemExit(1)
 
     print(f"Conectado al servidor en {host}:{port}")
@@ -35,13 +35,13 @@ def enviar_mensaje(s):
             break
         try:
             s.send(mensaje.encode())
-            print("Mensaje enviado al servidor.")
+            print("[OK] Mensaje enviado al servidor.")
         except socket.error as e:
-            print(f"Error al enviar el mensaje: {e}")
+            print(f"[ERROR] Error al enviar el mensaje: {e}")
             break
 
         respuesta = s.recv(1024).decode()
-        print(f"Respuesta del servidor: {respuesta}")
+        print(f"[INFO] Respuesta del servidor: {respuesta}")
 
 
 def main():
