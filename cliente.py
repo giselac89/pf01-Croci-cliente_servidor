@@ -23,7 +23,12 @@ def conectar_servidor():
 
 def enviar_mensaje(s):
     while True:
-        mensaje = input("Ingrese un mensaje (o 'éxito' para terminar): ")
+        mensaje = input("Ingrese un mensaje (o 'éxito' para terminar): ").strip()
+
+        if not mensaje:
+            print("No escribiste nada, probá de nuevo.")
+            continue 
+    
         if mensaje.lower() == "éxito":
             print("Cerrando conexión...")
             s.close()
