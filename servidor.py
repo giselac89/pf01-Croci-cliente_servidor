@@ -48,12 +48,29 @@ def inicializar_base_datos():
     print(f"[OK] Base de datos '{nombre_db}' lista.")
     return conn
 
+#----------Función para guardar mensajes en la base de datos----------
+def guardar_mensaje(conn, contenido, fecha_envio, ip_cliente):
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO mensajes (contenido, fecha_envio, ip_cliente)
+            VALUES (?, ?, ?)
+        """, (contenido, fecha_envio, ip_cliente))
+        conn.commit()  # Confirma la inserción del mensaje en la base de datos
+        return True
+    except sqlite3.OperationalError as e:
+        print(f"ERROR - No se pudo guardar el mensaje en la base de datos: {e}")
+        return False
 
-#prueba de las funciones antes de integrarlas
+    
+#----------Prueba de las funciones antes de integrarlas----------
+
 
 if __name__ == "__main__":
-    s = crear_socket()
     conn = inicializar_base_datos()
-    print("Ambas funciones corrieron sin errores.")
-    s.close()
+
+    # Simulamos un mensaje como si hubiera llegado de un cliente real
+    exito = guardar_mensaje(conn, "Mensaje de prueba", datetime.now().isoformat(), "127.0.0.1")
+    print(f"¿Se guardó el mensaje? {exito}")
+
     conn.close()
