@@ -1,8 +1,11 @@
 
 import socket
 
+host = "localhost"
+port = 5000
+
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # AF_INET = IPv4, SOCK_STREAM = TCP
-s.bind(("localhost", 5000))
+s.bind((host, port))
 s.listen()
 print("Esperando conexión...")
 
